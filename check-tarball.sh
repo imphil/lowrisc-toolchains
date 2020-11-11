@@ -53,6 +53,19 @@ if ! python -mjson.tool "${tarball_dest}/buildinfo.json"; then
   found_error=true
 fi
 
+libcheck_output="$(mktemp)"
+
+echo "Checking ELF Binaries for Library Usage"
+find "${tarball_dest}/bin" \
+  -exec sh -c 'file "$1" | grep -qi ": elf"' _ {} \; \
+  -print0 | \
+  xargs -0 -n1 libcheck | \
+  tee "${libcheck_output}"
+if grep "is linked to non-system libraries" "${libcheck_output}"; then
+  echo "ERROR: Toolchain Executable Linked to non-system library."
+  found_error=true
+fi
+
 if [ "${found_error}" = "true" ]; then
   exit 1
 else
