@@ -5,13 +5,21 @@
 
 build_top_dir="${PWD}"
 
+set -e
+
 # For *_VERSION variables
 # shellcheck source=sw-versions.sh
 . "${build_top_dir}/sw-versions.sh"
 
-mkdir -p build && cd build || exit 1
-git clone https://github.com/lowRISC/crosstool-ng || exit 1
-cd crosstool-ng || exit 1
-git checkout --force "${CROSSTOOL_NG_VERSION}" || exit 1
-./bootstrap || exit 1
+mkdir -p "${build_top_dir}/build"
+
+git clone https://github.com/lowRISC/crosstool-ng \
+  --branch "${CROSSTOOL_NG_VERSION}" --only-branch \
+  "${build_top_dir}/build/crosstool-ng"
+cd "${build_top_dir}/build/crosstool-ng"
+
+./bootstrap
 ./configure --prefix=/usr/local && make && sudo make install
+
+#cd "${build_top_dir}"
+#rm -fr "${build_top_dir}/build"
